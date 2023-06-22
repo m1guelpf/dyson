@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: tls-rancher-ingress
+  namespace: cattle-system
+spec:
+  commonName: "{{RANCHER_DOMAIN}}"
+  dnsNames:
+    - "{{RANCHER_DOMAIN}}"
+  issuerRef:
+    kind: ClusterIssuer
+    name: cloudflare-issuer
+  secretName: tls-rancher-ingress
