@@ -12,7 +12,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
       - name: Docker meta
         id: meta
@@ -40,6 +43,8 @@ jobs:
         with:
           push: true
           context: ./frontend
+          cache-from: type=gha
           file: ./frontend/Dockerfile
+          cache-to: type=gha,mode=max
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

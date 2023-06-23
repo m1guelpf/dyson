@@ -1,4 +1,4 @@
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 WORKDIR /src
 
 FROM base AS deps
@@ -19,3 +19,5 @@ COPY --from=builder /src/.next/standalone ./
 COPY --from=builder /src/.next/static ./.next/static
 EXPOSE 3000
 CMD ["node", "server.js"]
+
+LABEL org.opencontainers.image.source https://github.com/m1guelpf/dyson
