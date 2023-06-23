@@ -1,0 +1,44 @@
+name: Frontend CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-ci.yaml"
+  pull_request:
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-ci.yaml"
+
+defaults:
+  run:
+    working-directory: ./frontend
+
+jobs:
+  lint:
+    name: Code formatting & linting
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Node 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: corepack pnpm install --frozen-lockfile
+
+      - name: Generate database types
+        run: corepack pnpm prisma generate
+
+      - name: Check formatting with Prettier
+        run: corepack pnpm format:check
+
+      - name: Lint
+        run: corepack pnpm lint
+
+      - name: Check Typescript
+        run: corepack pnpm typecheck
