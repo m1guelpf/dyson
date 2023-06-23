@@ -28,6 +28,7 @@
 		"iron-session": "^6.3.1",
 		"next": "13.4.6",
 		"postcss": "8.4.24",
+		"randombytes": "^2.1.0",
 		"react": "18.2.0",
 		"react-dom": "18.2.0",
 		"sharp": "^0.32.1",
@@ -38,6 +39,7 @@
 		"zod": "^3.21.4"
 	},
 	"devDependencies": {
+		"@types/randombytes": "^2.0.0",
 		"prettier": "^2.8.8",
 		"prettier-plugin-sort-imports-desc": "^1.0.0",
 		"prisma": "^4.16.1"
