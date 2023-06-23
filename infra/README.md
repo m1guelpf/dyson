@@ -60,7 +60,7 @@ You can ensure everything worked by running `docker run --rm --gpus all nvidia/c
 
 ## 4. Kubernetes
 
-[k3s](https://k3s.io/) seems to be the simplest way get kubernetes running, so that's what I went with. Just `curl -sfL https://get.k3s.io | sh -` and you're good to go (verify with `sudo kubectl get nodes`). If you want to skip sudo when running kubectl commands, run `sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config`.
+[k3s](https://k3s.io/) seems to be the simplest way get kubernetes running, so that's what I went with. Just `curl -sfL https://get.k3s.io | sh -` and you're good to go (verify with `sudo kubectl get nodes`). If you want to skip sudo when running kubectl commands, run `mkdir ~/.kube && sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config && sudo chown $USER:$USER ~/.kube/config`.
 
 ### 4.1. DNS + SSL
 
