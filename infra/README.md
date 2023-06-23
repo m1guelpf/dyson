@@ -87,7 +87,7 @@ helm install rancher rancher-latest/rancher --namespace cattle-system --create-n
 
 Finally, generate the certificate with `RANCHER_DOMAIN="rancher.yourdomain.com" make rancher-cert`.
 
-You should now be able to access Rancher at the (sub)domain you configured from any machine in your tailscale network and log in with the password you set above.
+It usually takes around a minute to start up (you can watch progress with `kubectl -n cattle-system rollout status deploy/rancher`). Once it's done, you should now be able to access Rancher at the (sub)domain you configured from any machine in your tailscale network and log in with the password you set above.
 
 ## CI/CD
 
