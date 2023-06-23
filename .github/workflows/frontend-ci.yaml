@@ -9,6 +9,10 @@ on:
       - "frontend/**"
       - ".github/workflows/frontend-ci.yaml"
 
+defaults:
+  run:
+    working-directory: ./frontend
+
 jobs:
   lint:
     name: Code formatting & linting
@@ -22,20 +26,16 @@ jobs:
           node-version: 18
 
       - name: Install Dependencies
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8.5.0
-          run_install: |
-            - args: [--frozen-lockfile]
+        run: corepack pnpm install --frozen-lockfile
 
       - name: Generate database types
-        run: pnpm prisma generate
+        run: corepack pnpm prisma generate
 
       - name: Check formatting with Prettier
-        run: pnpm format:check
+        run: corepack pnpm format:check
 
       - name: Lint
-        run: pnpm lint
+        run: corepack pnpm lint
 
       - name: Check Typescript
-        run: pnpm typecheck
+        run: corepack pnpm typecheck
