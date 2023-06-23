@@ -9,7 +9,8 @@ RUN corepack pnpm i --frozen-lockfile
 FROM base AS builder
 COPY --from=deps /src/node_modules ./node_modules
 COPY . .
-RUN corepack pnpm build
+# Uses a dummy secret to avoid a warning from Next.js. The actual secret is set at runtime.
+RUN SESSION_SECRET=T3i4fOEJL1OYx/YsCgyv71dIE1uYGrlIhVukfN6cQaU= corepack pnpm build
 
 FROM base AS runner
 ENV NODE_ENV production
