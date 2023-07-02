@@ -60,7 +60,7 @@ You can ensure everything worked by running `docker run --rm --gpus all nvidia/c
 
 ## 4. Kubernetes
 
-[k3s](https://k3s.io/) seems to be the simplest way get kubernetes running, so that's what I went with. Just `curl -sfL https://get.k3s.io | sh -` and you're good to go (verify with `sudo kubectl get nodes`). If you want to skip sudo when running kubectl commands, run `mkdir ~/.kube && sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config && sudo chown $USER:$USER ~/.kube/config`.
+[k3s](https://k3s.io/) seems to be the simplest way get kubernetes running, so that's what I went with. Just `curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="v1.25.11+k3s1" sh -` and you're good to go (verify with `sudo kubectl get nodes`). If you want to skip sudo when running kubectl commands, run `mkdir ~/.kube && sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config && sudo chown $USER:$USER ~/.kube/config`.
 
 ### 4.1. DNS + SSL
 
@@ -82,7 +82,7 @@ helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
 # Pull data from the repo we just added
 helm repo update
 # Install rancher (make sure to replace YOUR_ADMIN_PASSWORD with a password of your choice and rancher.yourdomain.com with your actual (sub)domain)
-helm install rancher rancher-latest/rancher --namespace cattle-system --create-namespace --set hostname=rancher.yourdomain.com --set ingress.tls.source=secret --version v2.7.5-rc5 --set replicas=1 --set bootstrapPassword=YOUR_ADMIN_PASSWORD
+helm install rancher rancher-latest/rancher --namespace cattle-system --create-namespace --set hostname=rancher.yourdomain.com --set ingress.tls.source=secret --version v2.7.5 --set replicas=1 --set bootstrapPassword=YOUR_ADMIN_PASSWORD
 ```
 
 Finally, generate the certificate with `RANCHER_DOMAIN="rancher.yourdomain.com" make rancher-cert`.
