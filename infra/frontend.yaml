@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dyson-frontend
+  labels:
+    app: dyson
+    component: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dyson
+      component: frontend
+  template:
+    metadata:
+      labels:
+        app: dyson
+        component: frontend
+    spec:
+      initContainers:
+        - name: db-migration
+          image: ghcr.io/m1guelpf/dyson-prisma:edge
+          command: ["corepack", "pnpm", "prisma", "migrate", "deploy"]
+          env:
+            - name: DB_HOST
+              value: dyson-db:5432
+            - name: DB_NAME
+              value: dyson
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: dyson-db-secrets
+                  key: POSTGRES_USER
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: dyson-db-secrets
+                  key: POSTGRES_PASSWORD
+      containers:
+        - name: dyson-frontend
+          image: ghcr.io/m1guelpf/dyson-frontend:edge
+          env:
+            - name: SESSION_SECRET
+              value: UsHJUMm1RebxardLRMw2Pzhr6K+2Tmv5XEt7bHEPZ08=
+            - name: DB_HOST
+              value: dyson-db:5432
+            - name: DB_NAME
+              value: dyson
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: dyson-db-secrets
+                  key: POSTGRES_USER
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: dyson-db-secrets
+                  key: POSTGRES_PASSWORD
+          ports:
+            - containerPort: 3000

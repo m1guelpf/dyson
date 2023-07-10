@@ -1,0 +1,15 @@
+FROM node:20-alpine
+WORKDIR /src
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm i --frozen-lockfile
+
+COPY . .
+
+# Prisma doesn't support composing env vars, so we need to do it manually
+RUN echo "DATABASE_URL=postgresql://\${DB_USER}:\${DB_PASS}@\${DB_HOST}/\${DB_NAME}" > .env
+RUN pnpm prisma generate
+
+EXPOSE 3000
+CMD ["pnpm", "dev"]

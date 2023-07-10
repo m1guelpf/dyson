@@ -1,0 +1,102 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dyson-db-secrets
+type: Opaque
+data:
+  # TODO: Figure out a way to use proper secrets while still providing a template for users.
+  POSTGRES_USER: ZHlzb25kYg==
+  POSTGRES_PASSWORD: ZHlzb25kYg==
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: dyson-db-storage
+  labels:
+    app: dyson
+    component: db
+spec:
+  storageClassName: standard
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /var/lib/postgresql/data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dyson-db-pvc
+  labels:
+    app: dyson
+    component: db
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dyson-db
+  labels:
+    app: dyson
+    components: db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dyson
+      component: db
+  template:
+    metadata:
+      labels:
+        app: dyson
+        component: db
+    spec:
+      containers:
+        - name: dyson-db
+          image: postgres:latest
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: dyson-db-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dyson-db-secrets
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              value: dyson
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: dyson-db-storage
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: dyson-db-storage
+          persistentVolumeClaim:
+            claimName: dyson-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dyson-db
+  labels:
+    app: dyson
+    component: db
+spec:
+  selector:
+    app: dyson
+    component: db
+  ports:
+    - protocol: TCP
+      port: 5432
+  type: ClusterIP
+---
