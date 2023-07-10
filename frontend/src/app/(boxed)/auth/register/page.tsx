@@ -36,9 +36,12 @@ const Home = () => {
 					timeout: 60000,
 					attestation: 'direct',
 					rp: { name: APP_NAME },
-					pubKeyCredParams: [{ alg: -7, type: 'public-key' }],
 					user: { name: username, displayName: username, id: crypto.randomUUID() },
 					authenticatorSelection: { residentKey: 'required', userVerification: 'preferred' },
+					pubKeyCredParams: [
+						{ alg: -7, type: 'public-key' },
+						{ alg: -257, type: 'public-key' },
+					],
 				},
 			})
 
