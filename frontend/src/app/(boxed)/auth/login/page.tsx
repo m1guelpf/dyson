@@ -1,10 +1,12 @@
 'use client'
 
 import useSWR from 'swr'
+import { useRouter } from 'next/navigation'
 import { supported, get } from '@github/webauthn-json'
 import { FormEvent, useCallback, useState } from 'react'
 
 const Home = () => {
+	const router = useRouter()
 	const [username, setUsername] = useState('')
 	const { data: challenge } = useSWR<string>('/auth')
 
@@ -20,15 +22,19 @@ const Home = () => {
 
 			const credential = await get({ publicKey: { challenge, timeout: 60000, userVerification: 'required' } })
 
-			console.log(credential)
-
-			const result = await fetch('/api/auth/login', {
+			const result = await fetch('/auth/login/api', {
 				method: 'POST',
 				body: JSON.stringify({ username, credential }),
 				headers: {
 					'Content-Type': 'application/json',
 				},
 			})
+
+			if (result.ok) {
+				return router.push('/dashboard')
+			}
+
+			alert('Something went wrong...')
 		},
 		[username, challenge]
 	)
