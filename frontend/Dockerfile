@@ -14,6 +14,10 @@ RUN SESSION_SECRET=T3i4fOEJL1OYx/YsCgyv71dIE1uYGrlIhVukfN6cQaU= corepack pnpm bu
 
 FROM base AS runner
 ENV NODE_ENV production
+
+# Prisma doesn't support composing env vars, so we need to do it manually
+RUN echo "DATABASE_URL=postgresql://\${DB_USER}:\${DB_PASS}@\${DB_HOST}/\${DB_NAME}" > .env
+
 COPY --from=builder /src/public ./public
 COPY --from=builder /src/.next/standalone ./
 COPY --from=builder /src/.next/static ./.next/static

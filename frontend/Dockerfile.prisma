@@ -1,0 +1,10 @@
+FROM node:20-alpine
+WORKDIR /prisma
+
+RUN corepack pnpm add prisma
+COPY src/db ./prisma
+
+# Prisma doesn't support composing env vars, so we need to do it manually
+RUN echo "DATABASE_URL=postgresql://\${DB_USER}:\${DB_PASS}@\${DB_HOST}/\${DB_NAME}" > .env
+
+ENTRYPOINT [ "corepack", "pnpm", "prisma" ]
