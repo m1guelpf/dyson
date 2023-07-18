@@ -3,15 +3,8 @@ docker_build(
 	dockerfile="Dockerfile.dev",
 	live_update=[
 		sync('.', '/src/'),
-		run('corepack pnpm prisma generate', trigger=['./src/db/schema.prisma']),
 		run('corepack pnpm install --frozen-lockfile', trigger=['./package.json', './pnpm-lock.yaml'])
 	]
-)
-
-docker_build(
-	"ghcr.io/m1guelpf/dyson-prisma", ".",
-	only=["./src/db"],
-	dockerfile="Dockerfile.prisma"
 )
 
 k8s_yaml('../infra/frontend.yaml')

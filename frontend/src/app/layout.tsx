@@ -17,7 +17,7 @@ export const metadata = {
 const RootLayout: FC<PropsWithChildren<{}>> = ({ children }) => {
 	return (
 		<html lang="en" className={inter.variable}>
-			<body className="font-sans bg-neutral-950">
+			<body className="font-sans">
 				<ClientLayout>{children}</ClientLayout>
 			</body>
 		</html>

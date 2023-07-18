@@ -9,12 +9,11 @@
 		"start": "next start",
 		"format": "prettier -w ./",
 		"format:check": "prettier --check ./",
-		"build": "prisma generate && next build"
+		"build": "next build"
 	},
 	"dependencies": {
 		"@github/webauthn-json": "^2.1.1",
 		"@phosphor-icons/react": "^2.0.10",
-		"@prisma/client": "^4.16.1",
 		"@simplewebauthn/server": "^7.3.0",
 		"@types/node": "20.3.1",
 		"@types/react": "18.2.12",
@@ -41,10 +40,6 @@
 	"devDependencies": {
 		"@types/randombytes": "^2.0.0",
 		"prettier": "^2.8.8",
-		"prettier-plugin-sort-imports-desc": "^1.0.0",
-		"prisma": "^4.16.1"
-	},
-	"prisma": {
-		"schema": "src/db/schema.prisma"
+		"prettier-plugin-sort-imports-desc": "^1.0.0"
 	}
 }
