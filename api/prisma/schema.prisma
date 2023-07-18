@@ -1,0 +1,29 @@
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+    module_path = "db"
+    provider    = "cargo prisma"
+    output      = "../src/db.rs"
+}
+
+model User {
+    username String     @id
+    tokens   ApiToken[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model ApiToken {
+    token  String  @id
+    userId String
+    name   String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    user User @relation(fields: [userId], references: [username])
+}

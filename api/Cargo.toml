@@ -1,0 +1,27 @@
+[package]
+publish = false
+version = "0.0.0"
+name = "dyson-api"
+edition = "2021"
+default-run = "dyson-api"
+
+[dependencies]
+anyhow = "1.0.72"
+tracing = "0.1.37"
+dotenvy = "0.15.7"
+schemars = "0.8.12"
+axum-route-error = "2.0.0"
+aide = { version = "0.11.0", features = ["axum"] }
+tokio = { version = "1.29.1", features = ["full"] }
+serde = { version = "1.0.171", features = ["derive"] }
+axum-jsonschema = { version = "0.6.0", features = ["aide"] }
+axum = { version = "0.6.19", features = ["headers", "macros"] }
+tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
+prisma-client-rust = { git = "https://github.com/Brendonovich/prisma-client-rust", tag = "0.6.8", default-features = false, features = ["postgresql", "migrations"] }
+
+[build-dependencies]
+chrono = "0.4.26"
+
+[workspace]
+members = [".", "prisma-cli"]
+default-members = [".", "prisma-cli"]

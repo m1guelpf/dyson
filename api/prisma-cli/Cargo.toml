@@ -1,0 +1,13 @@
+[package]
+name = "prisma-cli"
+publish = false
+version = "0.0.0"
+edition = "2021"
+
+[dependencies]
+
+[dependencies.prisma-client-rust-cli]
+tag = "0.6.8"
+default-features = false
+features = ["postgresql", "migrations"]
+git = "https://github.com/Brendonovich/prisma-client-rust"
