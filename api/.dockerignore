@@ -1,0 +1,5 @@
+.env
+target
+src/db.rs
+Dockerfile
+.dockerignore
