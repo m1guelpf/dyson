@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: dyson-api
+  namespace: dyson
   labels:
     app: dyson
     component: api

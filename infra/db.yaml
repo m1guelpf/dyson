@@ -1,6 +1,7 @@
 apiVersion: v1
 kind: Secret
 metadata:
+  namespace: dyson
   name: dyson-db-secrets
 type: Opaque
 data:
@@ -9,30 +10,15 @@ data:
   POSTGRES_PASSWORD: ZHlzb25kYg==
 ---
 apiVersion: v1
-kind: PersistentVolume
+kind: PersistentVolumeClaim
 metadata:
+  namespace: dyson
   name: dyson-db-storage
   labels:
     app: dyson
     component: db
 spec:
-  storageClassName: standard
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: /var/lib/postgresql/data
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: dyson-db-pvc
-  labels:
-    app: dyson
-    component: db
-spec:
-  storageClassName: standard
+  storageClassName: local-path
   accessModes:
     - ReadWriteOnce
   resources:
@@ -43,6 +29,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: dyson-db
+  namespace: dyson
   labels:
     app: dyson
     components: db
@@ -82,12 +69,13 @@ spec:
       volumes:
         - name: dyson-db-storage
           persistentVolumeClaim:
-            claimName: dyson-db-pvc
+            claimName: dyson-db-storage
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: dyson-db
+  namespace: dyson
   labels:
     app: dyson
     component: db
