@@ -9,6 +9,7 @@ use tracing_subscriber::{
 #[allow(warnings, unused)]
 mod db;
 
+mod axum;
 mod routes;
 mod server;
 mod shutdown;
