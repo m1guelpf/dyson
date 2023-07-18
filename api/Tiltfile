@@ -1,0 +1,10 @@
+docker_build(
+	"ghcr.io/m1guelpf/dyson-api", ".",
+	dockerfile="Dockerfile",
+)
+
+k8s_yaml('../infra/api.yaml')
+k8s_resource(
+  workload='dyson-api',
+  port_forwards=8000
+)

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dyson
+  labels:
+    app: dyson
+    pod-security.kubernetes.io/enforce: "baseline"
+    pod-security.kubernetes.io/audit: "restricted"

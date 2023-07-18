@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dyson-api
+  labels:
+    app: dyson
+    component: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dyson
+      component: api
+  template:
+    metadata:
+      labels:
+        app: dyson
+        component: api
+    spec:
+      containers:
+        - name: dyson-api
+          image: ghcr.io/m1guelpf/dyson-api:edge
+          env:
+            - name: DATABASE_URL
+              value: postgres://dysondb:dysondb@dyson-db:5432/dyson
+          ports:
+            - containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 5
