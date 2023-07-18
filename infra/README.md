@@ -6,14 +6,14 @@ This is currently more of a description of what I've done than a guide on how to
 
 The specifics of the hardware shouldn't matter (as long as you use NVIDIA GPUs), but for reference, here's what I'm using:
 
-- GPU: 2x NVIDIA A4000
-- Case: Lian-Li O11 AIR Black
-- Motherboard: Asus Pro WS WRX80E-SAGE
-- CPU: AMD Ryzen Threadripper PRO 5955WX
-- Power: EVGA Supernova P2 1600 W 80 Plus Platinum
-- Cooling: Enermax Liqtech 360 TR4 II Liquid Cooling Kit
-- RAM: G.Skill Ripjaws V 128GB (4x32GB) DDR4 3600MHz
-- SSD: Samsung 980 Pro SSD 1TB M.2 + Samsung 980 Pro SSD 2TB M.2
+-   GPU: 2x NVIDIA A4000
+-   Case: Lian-Li O11 AIR Black
+-   Motherboard: Asus Pro WS WRX80E-SAGE
+-   CPU: AMD Ryzen Threadripper PRO 5955WX
+-   Power: EVGA Supernova P2 1600 W 80 Plus Platinum
+-   Cooling: Enermax Liqtech 360 TR4 II Liquid Cooling Kit
+-   RAM: G.Skill Ripjaws V 128GB (4x32GB) DDR4 3600MHz
+-   SSD: Samsung 980 Pro SSD 1TB M.2 + Samsung 980 Pro SSD 2TB M.2
 
 > **Warning**
 > This is an incredibly overkill setup, and I wouldn't recommend copying it. Figure out what kind of models you'll want to run, find a GPU that can fit them, and build around that.
@@ -61,6 +61,8 @@ You can ensure everything worked by running `docker run --rm --gpus all nvidia/c
 ## 4. Kubernetes
 
 [k3s](https://k3s.io/) seems to be the simplest way get kubernetes running, so that's what I went with. Just `curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="v1.25.11+k3s1" sh -` and you're good to go (verify with `sudo kubectl get nodes`). If you want to skip sudo when running kubectl commands, run `mkdir ~/.kube && sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config && sudo chown $USER:$USER ~/.kube/config`.
+
+We'll also need to configure persistent volumes. For simplicity's sake (and since I'm using a single node cluster anyways), I'm directly allocating my node's storage using `local-path-provisioner`. Setting it up is as simple as running `kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.24/deploy/local-path-storage.yaml`.
 
 ### 4.1. DNS + SSL
 
