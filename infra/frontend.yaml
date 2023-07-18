@@ -58,3 +58,9 @@ spec:
                   key: POSTGRES_PASSWORD
           ports:
             - containerPort: 3000
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 5
