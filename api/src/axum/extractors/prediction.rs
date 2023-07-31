@@ -1,51 +1,53 @@
 use aide::{
-	openapi::{HeaderStyle, Parameter, ParameterData, ParameterSchemaOrContent, SchemaObject},
+	openapi::{Parameter, ParameterData, ParameterSchemaOrContent, PathStyle, SchemaObject},
 	operation::add_parameters,
 	OperationInput,
 };
 use axum::{
 	async_trait,
-	extract::FromRequestParts,
-	headers::{authorization::Bearer, Authorization},
+	extract::{FromRequestParts, Path},
 	http::request::Parts,
-	Extension, RequestPartsExt, TypedHeader,
+	Extension, RequestPartsExt,
 };
 use std::sync::Arc;
 
 use crate::{
-	db::{api_token, user, PrismaClient},
+	db::{predictions, PrismaClient},
 	errors::RouteError,
+	spec::Prediction,
 };
+
+use super::AuthenticatedUser;
 
 #[derive(Debug)]
 #[allow(clippy::module_name_repetitions)]
-pub struct AuthenticatedUser(pub user::Data);
+pub struct AuthenticatedPrediction(pub Prediction);
 
 #[async_trait]
-impl<S> FromRequestParts<S> for AuthenticatedUser {
+impl<S> FromRequestParts<S> for AuthenticatedPrediction {
 	type Rejection = RouteError;
 
 	async fn from_request_parts(parts: &mut Parts, _: &S) -> Result<Self, Self::Rejection> {
-		let TypedHeader(Authorization(bearer)) = parts
-			.extract::<TypedHeader<Authorization<Bearer>>>()
-			.await
-			.map_err(|_| RouteError::unauthorized())?;
-
+		let Path(id) = parts.extract::<Path<String>>().await?;
+		let AuthenticatedUser(user) = parts.extract::<AuthenticatedUser>().await?;
 		let Extension(prisma) = parts.extract::<Extension<Arc<PrismaClient>>>().await?;
 
-		let token = prisma
-			.api_token()
-			.find_unique(api_token::token::equals(bearer.token().to_string()))
-			.with(api_token::user::fetch())
+		let prediction = prisma
+			.predictions()
+			.find_unique(predictions::id::equals(id))
 			.exec()
 			.await?
-			.ok_or_else(RouteError::unauthorized)?;
+			.ok_or_else(RouteError::not_found)?;
 
-		Ok(Self(token.user().unwrap().clone()))
+		if prediction.user_id != user.id {
+			return Err(RouteError::not_found());
+		}
+
+		Ok(Self(prediction.into()))
 	}
 }
 
-impl OperationInput for AuthenticatedUser {
+impl OperationInput for AuthenticatedPrediction {
 	#[allow(clippy::default_trait_access)]
 	fn operation_input(ctx: &mut aide::gen::GenContext, operation: &mut aide::openapi::Operation) {
 		let s = ctx.schema.subschema_for::<String>();
@@ -53,7 +55,7 @@ impl OperationInput for AuthenticatedUser {
 		add_parameters(
 			ctx,
 			operation,
-			[Parameter::Header {
+			[Parameter::Path {
 				parameter_data: ParameterData {
 					explode: None,
 					example: None,
@@ -61,15 +63,15 @@ impl OperationInput for AuthenticatedUser {
 					deprecated: None,
 					examples: Default::default(),
 					extensions: Default::default(),
-					name: "Authorization".to_string(),
-					description: Some("Bearer token".to_string()),
+					name: "prediction_id".to_string(),
+					description: Some("The ID of the prediction".to_string()),
 					format: ParameterSchemaOrContent::Schema(SchemaObject {
 						json_schema: s,
 						example: None,
 						external_docs: None,
 					}),
 				},
-				style: HeaderStyle::Simple,
+				style: PathStyle::Simple,
 			}],
 		);
 	}

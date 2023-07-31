@@ -1,5 +1,7 @@
 #![warn(clippy::all, clippy::pedantic, clippy::nursery)]
 
+use std::env;
+
 use anyhow::Result;
 use dotenvy::dotenv;
 use redis::aio::ConnectionManager;
@@ -11,9 +13,13 @@ use tracing_subscriber::{
 mod db;
 
 mod axum;
+mod config;
+mod errors;
 mod routes;
 mod server;
 mod shutdown;
+mod spec;
+mod webhooks;
 
 #[tokio::main]
 async fn main() -> Result<()> {
