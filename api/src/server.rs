@@ -1,12 +1,16 @@
 use aide::openapi::{self, OpenApi};
 use anyhow::Result;
 use axum::{Extension, Server};
+use redis::aio::ConnectionManager;
 use std::{env, net::SocketAddr, sync::Arc};
 
 use crate::{db::PrismaClient, routes, shutdown::Shutdown};
 
 #[allow(clippy::redundant_pub_crate)]
-pub(crate) async fn start(prisma_client: PrismaClient) -> Result<()> {
+pub(crate) async fn start(
+	prisma_client: PrismaClient,
+	redis_pool: ConnectionManager,
+) -> Result<()> {
 	let mut openapi = OpenApi {
 		info: openapi::Info {
 			title: "Dyson".to_string(),
@@ -24,6 +28,7 @@ pub(crate) async fn start(prisma_client: PrismaClient) -> Result<()> {
 	let router = router
 		.layer(Extension(openapi))
 		.layer(shutdown.extension())
+		.layer(Extension(redis_pool))
 		.layer(Extension(Arc::new(prisma_client)));
 
 	let addr = SocketAddr::from((

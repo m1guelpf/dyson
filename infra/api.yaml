@@ -24,6 +24,8 @@ spec:
           env:
             - name: DATABASE_URL
               value: postgres://dysondb:dysondb@dyson-db:5432/dyson
+            - name: REDIS_URL
+              value: redis://dyson-redis:6379/0
           ports:
             - containerPort: 8000
           readinessProbe:

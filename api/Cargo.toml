@@ -18,6 +18,11 @@ axum-jsonschema = { version = "0.6.0", features = ["aide"] }
 axum = { version = "0.6.19", features = ["headers", "macros"] }
 tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
 prisma-client-rust = { git = "https://github.com/Brendonovich/prisma-client-rust", tag = "0.6.8", default-features = false, features = ["postgresql", "migrations"] }
+redis = { version = "0.23.1", features = [
+	"aio",
+	"tokio-comp",
+	"connection-manager",
+] }
 
 [build-dependencies]
 chrono = "0.4.26"

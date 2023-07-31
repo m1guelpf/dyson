@@ -2,6 +2,7 @@
 
 use anyhow::Result;
 use dotenvy::dotenv;
+use redis::aio::ConnectionManager;
 use tracing_subscriber::{
 	prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer,
 };
@@ -30,10 +31,15 @@ async fn main() -> Result<()> {
 		.await
 		.expect("Failed to connect to database");
 
+	let redis_pool = ConnectionManager::new(redis::Client::open(
+		env::var("REDIS_URL").expect("Missing REDIS_URL environment variable"),
+	)?)
+	.await?;
+
 	#[cfg(debug_assertions)]
 	prisma_client._db_push().await?;
 	#[cfg(not(debug_assertions))]
 	prisma_client._migrate_deploy().await?;
 
-	server::start(prisma_client).await
+	server::start(prisma_client, redis_pool).await
 }
