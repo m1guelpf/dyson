@@ -1,6 +1,13 @@
-docker_build(
+load('ext://restart_process', 'docker_build_with_restart')
+
+docker_build_with_restart(
 	"ghcr.io/m1guelpf/dyson-api", ".",
-	dockerfile="Dockerfile",
+	dockerfile="Dockerfile.dev",
+	entrypoint="cargo run",
+	live_update=[
+		sync('.', '/app/'),
+		run('cargo prisma generate', trigger=['./prisma/schema.prisma'])
+	]
 )
 
 k8s_yaml('../infra/api.yaml')

@@ -1,0 +1,10 @@
+FROM rust
+WORKDIR /app
+
+COPY . /app/
+
+RUN cargo prisma generate
+RUN cargo build
+
+EXPOSE 8000
+CMD cargo run
