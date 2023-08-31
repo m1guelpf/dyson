@@ -1,11 +1,10 @@
-use std::sync::Arc;
-
 use aide::axum::{
 	routing::{get, post},
 	ApiRouter,
 };
 use axum::Extension;
 use axum_jsonschema::Json;
+use ensemble::Model;
 use redis::{aio::ConnectionManager, AsyncCommands};
 use schemars::{JsonSchema, _serde_json::Value};
 use serde_json::json;
@@ -14,9 +13,8 @@ use url::Url;
 use crate::{
 	axum::extractors::{prediction::AuthenticatedPrediction, AuthenticatedUser},
 	config,
-	db::{predictions, user, PrismaClient},
 	errors::RouteError,
-	spec::{Prediction, PredictionStatus, WebhookEvent},
+	models::{Prediction, PredictionStatus, WebhookEvent},
 	webhooks::WebhookSender,
 };
 
@@ -32,18 +30,11 @@ pub fn handler() -> ApiRouter {
 }
 
 async fn get_predictions(
-	AuthenticatedUser(user): AuthenticatedUser,
-	Extension(prisma): Extension<Arc<PrismaClient>>,
+	AuthenticatedUser(mut user): AuthenticatedUser,
 ) -> Result<Json<Vec<Prediction>>, RouteError> {
-	let predictions = prisma
-		.predictions()
-		.find_many(vec![predictions::user_id::equals(user.id)])
-		.exec()
-		.await?;
+	let predictions = user.predictions().await?;
 
-	Ok(Json(
-		predictions.into_iter().map(Into::into).collect::<Vec<_>>(),
-	))
+	Ok(Json(predictions.clone()))
 }
 
 #[allow(clippy::unused_async)]
@@ -73,59 +64,48 @@ struct CreatePredictionRequest {
 }
 
 async fn create_prediction(
-	AuthenticatedUser(user): AuthenticatedUser,
+	AuthenticatedUser(mut user): AuthenticatedUser,
 	Extension(mut redis): Extension<ConnectionManager>,
-	Extension(prisma): Extension<Arc<PrismaClient>>,
 	Json(req): Json<CreatePredictionRequest>,
 ) -> Result<Json<Prediction>, RouteError> {
 	tracing::trace!(req = ?req, "User @{} requested a prediction", user.username);
 
-	let prediction = prisma
-		.predictions()
-		.create(
-			req.version,
-			req.input,
-			user::id::equals(user.id),
-			vec![
-				predictions::webhook_url::set(req.webhook.map(Url::into)),
-				predictions::webhook_filter::set(
-					req.webhook_events_filter
-						.unwrap_or_default()
-						.into_iter()
-						.map(Into::into)
-						.collect::<Vec<_>>(),
-				),
-			],
-		)
-		.exec()
+	let prediction = user
+		.predictions
+		.create(Prediction {
+			input: req.input,
+			version: req.version,
+			webhook_url: req.webhook.map(Url::into),
+			webhook_filter: req
+				.webhook_events_filter
+				.unwrap_or_default()
+				.into_iter()
+				.map(Into::into)
+				.collect::<Vec<_>>(),
+			..Default::default()
+		})
 		.await?;
 
 	if let Err(e) = redis
-		.lpush::<_, _, ()>(config::REDIS_PREDICTION_QUEUE, prediction.id.clone())
+		.lpush::<_, _, ()>(config::REDIS_PREDICTION_QUEUE, prediction.id.to_string())
 		.await
 	{
 		tracing::error!(error = ?e, "Failed to push prediction to queue");
 
-		prisma
-			.predictions()
-			.delete(predictions::id::equals(prediction.id))
-			.exec()
-			.await?;
-
+		prediction.delete().await?;
 		return Err(RouteError::internal_error().set_error(e.into()));
 	}
 
-	Ok(Json(prediction.into()))
+	Ok(Json(prediction))
 }
 
 async fn cancel_prediction(
 	AuthenticatedPrediction(mut prediction): AuthenticatedPrediction,
 	Extension(mut redis): Extension<ConnectionManager>,
-	Extension(prisma): Extension<Arc<PrismaClient>>,
 ) -> Result<Json<Prediction>, RouteError> {
 	tracing::trace!(
 		"User {} requested to cancel prediction {}",
-		prediction.user_id,
+		prediction.user.value,
 		prediction.id
 	);
 
@@ -139,7 +119,7 @@ async fn cancel_prediction(
 	}
 
 	if let Err(e) = redis
-		.lpush::<_, _, ()>(config::REDIS_CANCEL_QUEUE, prediction.id.clone())
+		.lpush::<_, _, ()>(config::REDIS_CANCEL_QUEUE, prediction.id.to_string())
 		.await
 	{
 		tracing::error!(error = ?e, "Failed to push prediction to cancel queue");
@@ -147,18 +127,8 @@ async fn cancel_prediction(
 		return Err(RouteError::internal_error().set_error(e.into()));
 	}
 
-	prisma
-		.predictions()
-		.update(
-			predictions::id::equals(prediction.id.clone()),
-			vec![predictions::status::set(
-				predictions::status::Type::Cancelled,
-			)],
-		)
-		.exec()
-		.await?;
-
 	prediction.status = PredictionStatus::Cancelled;
+	prediction.save().await?;
 
 	let wh_prediction = prediction.clone();
 	tokio::spawn(async move {

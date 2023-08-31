@@ -4,7 +4,7 @@ use anyhow::Result;
 use reqwest::Client;
 use url::Url;
 
-use crate::spec::{Prediction, WebhookEvent};
+use crate::models::{Prediction, WebhookEvent};
 
 pub struct WebhookSender {
 	client: Client,

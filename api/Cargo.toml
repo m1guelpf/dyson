@@ -6,7 +6,7 @@ edition = "2021"
 default-run = "dyson-api"
 
 [dependencies]
-url = "2.4.0"
+url = { version = "2.4.0", features = ["serde"] }
 anyhow = "1.0.72"
 tracing = "0.1.37"
 dotenvy = "0.15.7"
@@ -17,21 +17,17 @@ serde = { version = "1.0.171", features = ["derive"] }
 reqwest = { version = "0.11.18", features = ["json"] }
 axum-jsonschema = { version = "0.6.0", features = ["aide"] }
 axum = { version = "0.6.19", features = ["headers", "macros"] }
-schemars = { version = "0.8.12", features = ["url", "chrono"] }
+schemars = { version = "0.8.12", features = ["url", "chrono", "uuid1"] }
 tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
-prisma-client-rust = { git = "https://github.com/Brendonovich/prisma-client-rust", rev = "bb1c2d3", default-features = false, features = [
-	"postgresql",
-	"migrations",
-] }
 redis = { version = "0.23.1", features = [
 	"aio",
 	"tokio-comp",
 	"connection-manager",
 ] }
+ensemble = { git = "https://github.com/m1guelpf/ensemble", features = [
+	"postgres",
+] }
+uuid = { version = "1.4.1", features = ["serde"] }
 
 [build-dependencies]
 chrono = "0.4.26"
-
-[workspace]
-members = [".", "prisma-cli"]
-default-members = [".", "prisma-cli"]

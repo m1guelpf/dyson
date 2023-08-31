@@ -7,15 +7,12 @@ use axum::{
 	async_trait,
 	extract::{FromRequestParts, Path},
 	http::request::Parts,
-	Extension, RequestPartsExt,
+	RequestPartsExt,
 };
-use std::sync::Arc;
+use ensemble::{query::Error as EnsembleError, Model};
+use uuid::Uuid;
 
-use crate::{
-	db::{predictions, PrismaClient},
-	errors::RouteError,
-	spec::Prediction,
-};
+use crate::{errors::RouteError, models::Prediction};
 
 use super::AuthenticatedUser;
 
@@ -30,20 +27,20 @@ impl<S> FromRequestParts<S> for AuthenticatedPrediction {
 	async fn from_request_parts(parts: &mut Parts, _: &S) -> Result<Self, Self::Rejection> {
 		let Path(id) = parts.extract::<Path<String>>().await?;
 		let AuthenticatedUser(user) = parts.extract::<AuthenticatedUser>().await?;
-		let Extension(prisma) = parts.extract::<Extension<Arc<PrismaClient>>>().await?;
 
-		let prediction = prisma
-			.predictions()
-			.find_unique(predictions::id::equals(id))
-			.exec()
-			.await?
-			.ok_or_else(RouteError::not_found)?;
+		let prediction =
+			Prediction::find(Uuid::parse_str(&id).map_err(|_| RouteError::bad_request())?)
+				.await
+				.map_err(|e| match e {
+					EnsembleError::NotFound => RouteError::not_found(),
+					_ => RouteError::internal_error(),
+				})?;
 
-		if prediction.user_id != user.id {
+		if prediction.user != user {
 			return Err(RouteError::not_found());
 		}
 
-		Ok(Self(prediction.into()))
+		Ok(Self(prediction))
 	}
 }
 

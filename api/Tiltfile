@@ -6,7 +6,6 @@ docker_build_with_restart(
 	entrypoint="cargo run",
 	live_update=[
 		sync('.', '/app/'),
-		run('cargo prisma generate', trigger=['./prisma/schema.prisma'])
 	]
 )
 
