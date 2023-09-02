@@ -10,7 +10,6 @@ use axum::{
 	RequestPartsExt,
 };
 use ensemble::{query::Error as EnsembleError, Model};
-use uuid::Uuid;
 
 use crate::{errors::RouteError, models::Prediction};
 
@@ -28,13 +27,12 @@ impl<S> FromRequestParts<S> for AuthenticatedPrediction {
 		let Path(id) = parts.extract::<Path<String>>().await?;
 		let AuthenticatedUser(user) = parts.extract::<AuthenticatedUser>().await?;
 
-		let prediction =
-			Prediction::find(Uuid::parse_str(&id).map_err(|_| RouteError::bad_request())?)
-				.await
-				.map_err(|e| match e {
-					EnsembleError::NotFound => RouteError::not_found(),
-					_ => RouteError::internal_error(),
-				})?;
+		let prediction = Prediction::find(id.parse().map_err(|_| RouteError::bad_request())?)
+			.await
+			.map_err(|e| match e {
+				EnsembleError::NotFound => RouteError::not_found(),
+				_ => RouteError::internal_error(),
+			})?;
 
 		if prediction.user != user {
 			return Err(RouteError::not_found());

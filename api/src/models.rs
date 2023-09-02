@@ -1,11 +1,10 @@
 use ensemble::{
 	relationships::{BelongsTo, HasMany},
-	types::DateTime,
+	types::{DateTime, Json, Uuid},
 	Model,
 };
 use schemars::JsonSchema;
 use url::Url;
-use uuid::Uuid;
 
 #[derive(Debug, Clone, Model, JsonSchema)]
 pub struct User {
@@ -44,12 +43,9 @@ pub enum WebhookEvent {
 	Completed,
 }
 
-#[derive(
-	Debug, serde::Serialize, serde::Deserialize, JsonSchema, Clone, Copy, PartialEq, Eq, Default,
-)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, JsonSchema, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum PredictionStatus {
-	#[default]
 	Starting,
 	Processing,
 	Succeeded,
@@ -61,16 +57,18 @@ pub enum PredictionStatus {
 pub struct Prediction {
 	#[model(uuid)]
 	pub id: Uuid,
-	pub status: PredictionStatus,
 	pub version: String,
-	pub logs: Option<String>,
+	#[model(default = PredictionStatus::Starting)]
+	pub status: PredictionStatus,
 	pub webhook_url: Option<Url>,
-	pub webhook_filter: Vec<WebhookEvent>,
+	#[model(default)]
+	pub webhook_filter: Json<Vec<WebhookEvent>>,
 
-	pub input: serde_json::Value,
-	pub error: Option<serde_json::Value>,
-	pub output: Option<serde_json::Value>,
-	pub metrics: Option<serde_json::Value>,
+	pub logs: Option<String>,
+	pub input: Json,
+	pub error: Option<Json>,
+	pub output: Option<Json>,
+	pub metrics: Option<Json>,
 
 	pub created_at: DateTime,
 	pub updated_at: DateTime,

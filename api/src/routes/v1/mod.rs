@@ -4,7 +4,7 @@ use aide::axum::{
 };
 use axum::Extension;
 use axum_jsonschema::Json;
-use ensemble::Model;
+use ensemble::{types::ToJson, Model};
 use redis::{aio::ConnectionManager, AsyncCommands};
 use schemars::{JsonSchema, _serde_json::Value};
 use serde_json::json;
@@ -32,7 +32,7 @@ pub fn handler() -> ApiRouter {
 async fn get_predictions(
 	AuthenticatedUser(mut user): AuthenticatedUser,
 ) -> Result<Json<Vec<Prediction>>, RouteError> {
-	let predictions = user.predictions().await?;
+	let predictions = user.predictions().await.unwrap();
 
 	Ok(Json(predictions.clone()))
 }
@@ -73,18 +73,20 @@ async fn create_prediction(
 	let prediction = user
 		.predictions
 		.create(Prediction {
-			input: req.input,
 			version: req.version,
+			input: req.input.into(),
 			webhook_url: req.webhook.map(Url::into),
 			webhook_filter: req
 				.webhook_events_filter
 				.unwrap_or_default()
 				.into_iter()
 				.map(Into::into)
-				.collect::<Vec<_>>(),
+				.collect::<Vec<_>>()
+				.to_json(),
 			..Default::default()
 		})
-		.await?;
+		.await
+		.unwrap();
 
 	if let Err(e) = redis
 		.lpush::<_, _, ()>(config::REDIS_PREDICTION_QUEUE, prediction.id.to_string())
