@@ -32,7 +32,7 @@ impl Migration for CreateTokensTable {
 			table.string("name");
 			table.timestamps();
 
-			table.foreign_id("user_id");
+			table.foreign_uuid("user_id");
 		})
 		.await
 	}
@@ -51,10 +51,7 @@ impl Migration for CreatePredictionsTable {
 		Schema::create("predictions", |table| {
 			table.uuid();
 			table.string("version");
-			table.r#enum(
-				"status",
-				&["STARTING", "PROCESSING", "SUCCEEDED", "FAILED", "CANCELLED"],
-			);
+			table.string("status");
 			table.json("input");
 			table.text("logs").nullable(true);
 			table.json("error").nullable(true);
@@ -69,7 +66,7 @@ impl Migration for CreatePredictionsTable {
 			table.timestamp("started_at").nullable(true);
 			table.timestamp("completed_at").nullable(true);
 
-			table.foreign_id("user_id");
+			table.foreign_uuid("user_id");
 		})
 		.await
 	}
