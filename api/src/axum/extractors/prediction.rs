@@ -9,7 +9,7 @@ use axum::{
 	http::request::Parts,
 	RequestPartsExt,
 };
-use ensemble::{query::Error as EnsembleError, Model};
+use ensemble::Model;
 
 use crate::{errors::RouteError, models::Prediction};
 
@@ -30,7 +30,7 @@ impl<S> FromRequestParts<S> for AuthenticatedPrediction {
 		let prediction = Prediction::find(id.parse().map_err(|_| RouteError::bad_request())?)
 			.await
 			.map_err(|e| match e {
-				EnsembleError::NotFound => RouteError::not_found(),
+				ensemble::Error::NotFound => RouteError::not_found(),
 				_ => RouteError::internal_error(),
 			})?;
 
