@@ -9,16 +9,14 @@ use tracing_subscriber::{
 	prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer,
 };
 
-#[allow(warnings, unused)]
-mod db;
-
 mod axum;
 mod config;
 mod errors;
+mod migrations;
+mod models;
 mod routes;
 mod server;
 mod shutdown;
-mod spec;
 mod webhooks;
 
 #[tokio::main]
@@ -33,19 +31,21 @@ async fn main() -> Result<()> {
 		)
 		.init();
 
-	let prisma_client = db::new_client()
-		.await
-		.expect("Failed to connect to database");
+	ensemble::setup(&env::var("DATABASE_URL").expect("Missing DATABASE_URL environment variable"))
+		.await?;
 
 	let redis_pool = ConnectionManager::new(redis::Client::open(
 		env::var("REDIS_URL").expect("Missing REDIS_URL environment variable"),
 	)?)
 	.await?;
 
-	#[cfg(debug_assertions)]
-	prisma_client._db_push().await?;
-	#[cfg(not(debug_assertions))]
-	prisma_client._migrate_deploy().await?;
+	ensemble::migrate!(
+		migrations::CreateUsersTable,
+		migrations::CreateTokensTable,
+		migrations::CreatePredictionsTable
+	)
+	.await
+	.expect("Failed to run migrations");
 
-	server::start(prisma_client, redis_pool).await
+	server::start(redis_pool).await
 }

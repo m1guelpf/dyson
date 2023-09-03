@@ -98,10 +98,10 @@ fn register_handlers() -> impl Future<Output = ()> {
 
 	async move {
 		tokio::select! {
-			_ = ctrl_c => {
+			() = ctrl_c => {
 				tracing::info!("Received Ctrl+C signal");
 			},
-			_ = terminate => {
+			() = terminate => {
 				tracing::info!("Received terminate signal");
 			},
 		}

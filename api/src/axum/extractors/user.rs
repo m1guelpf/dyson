@@ -8,18 +8,18 @@ use axum::{
 	extract::FromRequestParts,
 	headers::{authorization::Bearer, Authorization},
 	http::request::Parts,
-	Extension, RequestPartsExt, TypedHeader,
+	RequestPartsExt, TypedHeader,
 };
-use std::sync::Arc;
+use ensemble::Model;
 
 use crate::{
-	db::{api_token, user, PrismaClient},
 	errors::RouteError,
+	models::{ApiToken, User},
 };
 
 #[derive(Debug)]
 #[allow(clippy::module_name_repetitions)]
-pub struct AuthenticatedUser(pub user::Data);
+pub struct AuthenticatedUser(pub User);
 
 #[async_trait]
 impl<S> FromRequestParts<S> for AuthenticatedUser {
@@ -31,17 +31,11 @@ impl<S> FromRequestParts<S> for AuthenticatedUser {
 			.await
 			.map_err(|_| RouteError::unauthorized())?;
 
-		let Extension(prisma) = parts.extract::<Extension<Arc<PrismaClient>>>().await?;
+		let mut token = ApiToken::find(bearer.token().to_string())
+			.await
+			.map_err(|_| RouteError::unauthorized())?;
 
-		let token = prisma
-			.api_token()
-			.find_unique(api_token::token::equals(bearer.token().to_string()))
-			.with(api_token::user::fetch())
-			.exec()
-			.await?
-			.ok_or_else(RouteError::unauthorized)?;
-
-		Ok(Self(token.user().unwrap().clone()))
+		Ok(Self(token.user().await.unwrap().clone()))
 	}
 }
 
