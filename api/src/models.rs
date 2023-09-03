@@ -72,6 +72,8 @@ pub struct Prediction {
 
 	pub created_at: DateTime,
 	pub updated_at: DateTime,
+	pub started_at: Option<DateTime>,
+	pub completed_at: Option<DateTime>,
 
 	pub user: BelongsTo<Prediction, User>,
 }
