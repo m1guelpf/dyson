@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dyson-director
+  namespace: dyson
+  labels:
+    app: dyson
+    component: director
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dyson
+      component: director
+  template:
+    metadata:
+      labels:
+        app: dyson
+        component: director
+    spec:
+      containers:
+        - name: dyson-director
+          image: ghcr.io/m1guelpf/dyson-director:edge
+          env:
+            - name: DATABASE_URL
+              value: postgres://dysondb:dysondb@dyson-db:5432/dyson
+            - name: REDIS_URL
+              value: redis://dyson-redis:6379/0
+          ports:
+            - containerPort: 4900
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 4900
+            initialDelaySeconds: 30
+            periodSeconds: 5
