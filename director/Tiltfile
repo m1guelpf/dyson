@@ -1,0 +1,16 @@
+load('ext://restart_process', 'docker_build_with_restart')
+
+docker_build_with_restart(
+	"ghcr.io/m1guelpf/dyson-director", ".",
+	dockerfile="Dockerfile.dev",
+	entrypoint="cargo run",
+	live_update=[
+		sync('.', '/app/'),
+	]
+)
+
+k8s_yaml('../infra/director.yaml')
+k8s_resource(
+  workload='dyson-director',
+  port_forwards=4900
+)

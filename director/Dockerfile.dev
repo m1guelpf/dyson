@@ -1,0 +1,9 @@
+FROM rust
+WORKDIR /app
+
+COPY . /app/
+
+RUN cargo build
+
+EXPOSE 4900
+CMD cargo run

@@ -1,0 +1,25 @@
+[package]
+publish = false
+edition = "2021"
+version = "0.0.0"
+name = "dyson-director"
+
+[dependencies]
+anyhow = "1.0.75"
+axum = { version = "0.6.20", features = ["macros"] }
+chrono = "0.4.31"
+clap = { version = "4.4.4", features = ["derive"] }
+cog-core = "0.1.1"
+hyper = "0.14.27"
+reqwest = { version = "0.11.20", features = ["json"] }
+reqwest-middleware = "0.2.3"
+reqwest-retry = "0.3.0"
+serde = { version = "1.0.188", features = ["derive"] }
+serde_json = "1.0.107"
+tokio = { version = "1.32.0", features = ["full"] }
+tracing = "0.1.37"
+tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
+url = { version = "2.4.1", features = ["serde"] }
+
+[build-dependencies]
+chrono = "0.4.31"

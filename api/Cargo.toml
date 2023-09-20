@@ -1,16 +1,15 @@
 [package]
 publish = false
+edition = "2021"
 version = "0.0.0"
 name = "dyson-api"
-edition = "2021"
-default-run = "dyson-api"
 
 [dependencies]
-url = { version = "2.4.0", features = ["serde"] }
 anyhow = "1.0.72"
 tracing = "0.1.37"
 dotenvy = "0.15.7"
 serde_json = "1.0.104"
+url = { version = "2.4.0", features = ["serde"] }
 aide = { version = "0.11.0", features = ["axum"] }
 tokio = { version = "1.29.1", features = ["full"] }
 serde = { version = "1.0.171", features = ["derive"] }
